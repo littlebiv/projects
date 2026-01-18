@@ -26,16 +26,18 @@ class Piece {
     public void makeKing() { this.isKing = true; }
 }
 
-class Point { // Custom Point class to avoid java.awt.Point confusion in logic
+class Point {
     int row, col;
     public Point(int row, int col) { this.row = row; this.col = col; }
     public boolean equals(int r, int c) { return this.row == r && this.col == c; }
+    @Override
+    public String toString() { return "(" + row + "," + col + ")"; }
 }
 
 class Move {
     Point start, end;
     boolean isCapture;
-    Point capturedPiece; // Location of the piece being eaten
+    Point capturedPiece;
 
     public Move(Point start, Point end, boolean isCapture, Point capturedPiece) {
         this.start = start;
@@ -45,7 +47,7 @@ class Move {
     }
 }
 
-// --- MODEL (The Logic) ---
+// --- MODEL (Logic) ---
 
 class CheckersModel {
     public static final int SIZE = 8;
@@ -60,7 +62,6 @@ class CheckersModel {
         board = new Piece[SIZE][SIZE];
         currentPlayer = Player.WHITE;
         
-        // Setup pieces
         for (int row = 0; row < SIZE; row++) {
             for (int col = 0; col < SIZE; col++) {
                 if ((row + col) % 2 != 0) {
@@ -82,16 +83,13 @@ class CheckersModel {
         Piece piece = board[move.start.row][move.start.col];
         if (piece == null) return false;
 
-        // Execute move
         board[move.end.row][move.end.col] = piece;
         board[move.start.row][move.start.col] = null;
 
-        // Handle capture
         if (move.isCapture) {
             board[move.capturedPiece.row][move.capturedPiece.col] = null;
         }
 
-        // King Promotion
         if (!piece.isKing() && ((piece.getPlayer() == Player.WHITE && move.end.row == 0) ||
             (piece.getPlayer() == Player.BLACK && move.end.row == SIZE - 1))) {
             piece.makeKing();
@@ -118,9 +116,7 @@ class CheckersModel {
         return moves;
     }
 
-    // --- לוגיקה חדשה: תמיכה במלכה מעופפת ---
     private void checkMovesForPiece(int r, int c, Piece p, List<Move> moves, List<Move> captures) {
-        // All 4 diagonals: Up-Left, Up-Right, Down-Left, Down-Right
         int[][] directions = {{-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
 
         for (int[] dir : directions) {
@@ -128,43 +124,28 @@ class CheckersModel {
             int dCol = dir[1];
 
             if (p.isKing()) {
-                // --- KING LOGIC (Flying) ---
                 boolean foundEnemy = false;
                 Point enemyPos = null;
 
-                // Scan the whole diagonal
                 for (int dist = 1; dist < SIZE; dist++) {
                     int targetR = r + (dRow * dist);
                     int targetC = c + (dCol * dist);
-
-                    if (!isValidBounds(targetR, targetC)) break; // End of board
-
+                    if (!isValidBounds(targetR, targetC)) break;
                     Piece targetP = board[targetR][targetC];
 
                     if (targetP == null) {
-                        // Empty square
-                        if (!foundEnemy) {
-                            // Simple move (no capture yet)
-                            moves.add(new Move(new Point(r, c), new Point(targetR, targetC), false, null));
-                        } else {
-                            // Landing spot AFTER capture
-                            captures.add(new Move(new Point(r, c), new Point(targetR, targetC), true, enemyPos));
-                        }
+                        if (!foundEnemy) moves.add(new Move(new Point(r, c), new Point(targetR, targetC), false, null));
+                        else captures.add(new Move(new Point(r, c), new Point(targetR, targetC), true, enemyPos));
                     } else {
-                        // Found a piece
-                        if (targetP.getPlayer() == p.getPlayer()) {
-                            break; // Blocked by own piece
-                        } else {
-                            // Found enemy
-                            if (foundEnemy) break; // Cannot capture two enemies in a row without landing
+                        if (targetP.getPlayer() == p.getPlayer()) break;
+                        else {
+                            if (foundEnemy) break;
                             foundEnemy = true;
                             enemyPos = new Point(targetR, targetC);
                         }
                     }
                 }
             } else {
-                // --- REGULAR MAN LOGIC ---
-                // 1. Simple Move (1 step) - Only forward
                 int forwardDir = (p.getPlayer() == Player.WHITE) ? -1 : 1;
                 if (dRow == forwardDir) {
                     int targetR = r + dRow;
@@ -173,13 +154,10 @@ class CheckersModel {
                         moves.add(new Move(new Point(r, c), new Point(targetR, targetC), false, null));
                     }
                 }
-
-                // 2. Capture (2 steps) - Can capture backwards too
                 int jumpR = r + (dRow * 2);
                 int jumpC = c + (dCol * 2);
                 int midR = r + dRow;
                 int midC = c + dCol;
-
                 if (isValidBounds(jumpR, jumpC) && board[jumpR][jumpC] == null) {
                     Piece midP = board[midR][midC];
                     if (midP != null && midP.getPlayer() != p.getPlayer()) {
@@ -193,15 +171,28 @@ class CheckersModel {
     private boolean isValidBounds(int r, int c) {
         return r >= 0 && r < SIZE && c >= 0 && c < SIZE;
     }
+
+    // פונקציית עזר להחזרת כמות הכלים
+    public int getCount(Player p) {
+        int count = 0;
+        for(int r=0; r<SIZE; r++) {
+            for(int c=0; c<SIZE; c++) {
+                Piece piece = board[r][c];
+                if(piece != null && piece.getPlayer() == p) count++;
+            }
+        }
+        return count;
+    }
 }
 
-// --- VIEW (The GUI) ---
+// --- VIEW (GUI) ---
 
 class CheckersView extends JPanel {
     private CheckersModel model;
     private final int TILE_SIZE = 80;
     private Point selectedSquare = null;
     private List<Move> validMovesForSelected = new ArrayList<>();
+    private String gameOverMessage = null;
 
     public CheckersView(CheckersModel model) {
         this.model = model;
@@ -211,6 +202,11 @@ class CheckersView extends JPanel {
     public void setSelectedSquare(Point p, List<Move> moves) {
         this.selectedSquare = p;
         this.validMovesForSelected = moves;
+        repaint();
+    }
+    
+    public void setGameOverMessage(String msg) {
+        this.gameOverMessage = msg;
         repaint();
     }
 
@@ -224,33 +220,26 @@ class CheckersView extends JPanel {
 
         for (int row = 0; row < CheckersModel.SIZE; row++) {
             for (int col = 0; col < CheckersModel.SIZE; col++) {
-                // Draw Board
-                if ((row + col) % 2 == 0) g2.setColor(new Color(235, 206, 168)); // Light Wood
-                else g2.setColor(new Color(133, 94, 66)); // Dark Wood
+                if ((row + col) % 2 == 0) g2.setColor(new Color(235, 206, 168));
+                else g2.setColor(new Color(133, 94, 66));
                 g2.fillRect(col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE, TILE_SIZE);
 
-                // Highlight Selection
                 if (selectedSquare != null && selectedSquare.equals(row, col)) {
-                    g2.setColor(new Color(100, 255, 100, 100)); // Green highlight
+                    g2.setColor(new Color(100, 255, 100, 100));
                     g2.fillRect(col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE, TILE_SIZE);
                 }
 
-                // Draw Pieces
                 Piece piece = model.getPieceAt(row, col);
                 if (piece != null) {
                     int padding = 12;
                     if (piece.getPlayer() == Player.WHITE) g2.setColor(Color.WHITE);
                     else g2.setColor(Color.BLACK);
-                    
                     g2.fillOval(col * TILE_SIZE + padding, row * TILE_SIZE + padding, 
                                 TILE_SIZE - 2*padding, TILE_SIZE - 2*padding);
-                    
-                    // Add border to piece
                     g2.setColor(Color.GRAY);
                     g2.drawOval(col * TILE_SIZE + padding, row * TILE_SIZE + padding, 
                                 TILE_SIZE - 2*padding, TILE_SIZE - 2*padding);
 
-                    // Draw King Marker
                     if (piece.isKing()) {
                         g2.setColor(Color.RED);
                         g2.setFont(new Font("SansSerif", Font.BOLD, 30));
@@ -260,35 +249,56 @@ class CheckersView extends JPanel {
             }
         }
 
-        // Highlight Valid Moves
         g2.setColor(new Color(0, 255, 0, 150));
         for (Move m : validMovesForSelected) {
             int cx = m.end.col * TILE_SIZE + TILE_SIZE / 2;
             int cy = m.end.row * TILE_SIZE + TILE_SIZE / 2;
             g2.fillOval(cx - 10, cy - 10, 20, 20);
         }
+
+        if (gameOverMessage != null) {
+            g2.setColor(new Color(0, 0, 0, 200));
+            g2.fillRect(0, 0, getWidth(), getHeight());
+            g2.setColor(new Color(255, 215, 0));
+            g2.setFont(new Font("Arial", Font.BOLD, 40));
+            FontMetrics fm = g2.getFontMetrics();
+            int x = (getWidth() - fm.stringWidth(gameOverMessage)) / 2;
+            int y = (getHeight() + fm.getAscent()) / 2;
+            g2.drawString(gameOverMessage, x, y);
+        }
     }
 }
 
-// --- CONTROLLER (The Interaction) ---
+// --- CONTROLLER ---
 
 class CheckersController extends MouseAdapter {
     private CheckersModel model;
     private CheckersView view;
+    private JFrame frame; // Reference to window to update title
     private Point selectedSource;
+    private boolean gameEnded = false;
 
-    public CheckersController(CheckersModel model, CheckersView view) {
+    public CheckersController(CheckersModel model, CheckersView view, JFrame frame) {
         this.model = model;
         this.view = view;
+        this.frame = frame;
         view.addMouseListener(this);
+        updateTitle(); // Initial title
+    }
+
+    private void updateTitle() {
+        int w = model.getCount(Player.WHITE);
+        int b = model.getCount(Player.BLACK);
+        frame.setTitle("Checkers | White Left: " + w + " | Black Left: " + b + " | Turn: " + model.getCurrentPlayer());
     }
 
     @Override
     public void mousePressed(MouseEvent e) {
+        if (gameEnded) return;
+
         int col = e.getX() / view.getTileSize();
         int row = e.getY() / view.getTileSize();
 
-        // 1. If clicking on own piece -> Select it
         Piece clickedPiece = model.getPieceAt(row, col);
         Player current = model.getCurrentPlayer();
 
@@ -296,19 +306,15 @@ class CheckersController extends MouseAdapter {
             selectedSource = new Point(row, col);
             List<Move> allMoves = model.getValidMoves(current);
             List<Move> relevantMoves = new ArrayList<>();
-            
-            // Filter only moves starting from this piece
             for(Move m : allMoves) {
                 if(m.start.equals(row, col)) relevantMoves.add(m);
             }
             view.setSelectedSquare(selectedSource, relevantMoves);
         } 
-        // 2. If clicking on empty square -> Try to move
         else if (selectedSource != null) {
             List<Move> allMoves = model.getValidMoves(current);
             Move moveBuild = null;
 
-            // Find if this click corresponds to a valid move from the selected source
             for (Move m : allMoves) {
                 if (m.start.equals(selectedSource.row, selectedSource.col) && 
                     m.end.equals(row, col)) {
@@ -321,10 +327,40 @@ class CheckersController extends MouseAdapter {
                 model.makeMove(moveBuild);
                 selectedSource = null;
                 view.setSelectedSquare(null, new ArrayList<>());
+                
+                // Update Window Title (Debug without Terminal)
+                updateTitle();
+
+                // Check Win
+                int whiteCount = model.getCount(Player.WHITE);
+                int blackCount = model.getCount(Player.BLACK);
+                
+                Player winner = null;
+                if (whiteCount == 0) winner = Player.BLACK;
+                else if (blackCount == 0) winner = Player.WHITE;
+                
+                // Also check stalemate
+                if (winner == null && model.getValidMoves(model.getCurrentPlayer()).isEmpty()) {
+                    winner = model.getCurrentPlayer().opponent();
+                }
+
+                if (winner != null) {
+                    gameEnded = true;
+                    String colorName = (winner == Player.WHITE) ? "White" : "Black";
+                    String msg = "Success! Player " + colorName + " wins!";
+                    
+                    System.out.println("Game Over! " + msg);
+                    frame.setTitle("GAME OVER - " + msg);
+                    view.setGameOverMessage(msg);
+                    frame.repaint();
+                    frame.revalidate();
+                    
+                    // Force Exit Timer after delay
+                    new Timer(8000, evt -> System.exit(0)).start();
+                }
             }
         }
-        
-        view.repaint(); // Always refresh
+        view.repaint();
     }
 }
 
@@ -333,18 +369,19 @@ class CheckersController extends MouseAdapter {
 public class CheckersGame {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            JFrame frame = new JFrame("Java Checkers - Israeli Rules");
+            JFrame frame = new JFrame("Java Checkers"); // Title will be overwritten immediately
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             
             CheckersModel model = new CheckersModel();
             CheckersView view = new CheckersView(model);
-            new CheckersController(model, view); // Wire them up
+            
+            // Pass 'frame' to controller so it can update the title
+            new CheckersController(model, view, frame);
 
             frame.add(view);
             frame.pack();
-            frame.setLocationRelativeTo(null); // Center on screen
+            frame.setLocationRelativeTo(null);
             frame.setVisible(true);
         });
     }
-    
 }

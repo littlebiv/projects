@@ -172,7 +172,6 @@ class CheckersModel {
         return r >= 0 && r < SIZE && c >= 0 && c < SIZE;
     }
 
-    // פונקציית עזר להחזרת כמות הכלים
     public int getCount(Player p) {
         int count = 0;
         for(int r=0; r<SIZE; r++) {
@@ -274,16 +273,64 @@ class CheckersView extends JPanel {
 class CheckersController extends MouseAdapter {
     private CheckersModel model;
     private CheckersView view;
-    private JFrame frame; // Reference to window to update title
-    private Point selectedSource;
-    private boolean gameEnded = false;
+    private JFrame frame; 
 
     public CheckersController(CheckersModel model, CheckersView view, JFrame frame) {
         this.model = model;
         this.view = view;
         this.frame = frame;
         view.addMouseListener(this);
-        updateTitle(); // Initial title
+        updateTitle();
+        System.out.println("Controller Initialized!"); 
+    }
+
+    private void updateTitle() {
+        int w = model.getCount(Player.WHITE);
+        int b = model.getCount(Player.BLACK);
+        String title = "Checkers | White Left: " + w + " | Black Left: " + b + " | Turn: " + model.getCurrentPlayer();
+        frame.setTitle(title);
+        System.out.println("Title Updated: " + title); // Debug print
+    }
+
+    @Override
+    public void mousePressed(MouseEvent e) {
+        int col = e.getX() / view.getTileSize();
+        int row = e.getY() / view.getTileSize();
+
+        Piece clickedPiece = model.getPieceAt(row, col);
+        Player current = model.getCurrentPlayer();
+
+        if (clickedPiece != null && clickedPiece.getPlayer() == current) {
+            Point selectedSource = new Point(row, col);
+            List<Move> allMoves = model.getValidMoves(current);
+            List<Move> relevantMoves = new ArrayList<>();
+            for(Move m : allMoves) {
+                if(m.start.equals(row, col)) relevantMoves.add(m);
+            }
+            view.setSelectedSquare(selectedSource, relevantMoves);
+        } 
+        else {
+             // Handle Move
+             // (Logic simplified here to focus on passing 'view.selectedSquare' logic 
+             //  Use internal state for simplicity in full code below)
+        }
+    }
+}
+
+// צריך להחליף את ה-Controller למעלה בגרסה המלאה הזו כדי שזה יעבוד עם ה-State:
+class FullCheckersController extends MouseAdapter {
+    private CheckersModel model;
+    private CheckersView view;
+    private JFrame frame;
+    private Point selectedSource;
+    private boolean gameEnded = false;
+
+    public FullCheckersController(CheckersModel model, CheckersView view, JFrame frame) {
+        this.model = model;
+        this.view = view;
+        this.frame = frame;
+        view.addMouseListener(this);
+        updateTitle();
     }
 
     private void updateTitle() {
@@ -328,8 +375,7 @@ class CheckersController extends MouseAdapter {
                 selectedSource = null;
                 view.setSelectedSquare(null, new ArrayList<>());
                 
-                // Update Window Title (Debug without Terminal)
-                updateTitle();
+                updateTitle(); // Update the window title!
 
                 // Check Win
                 int whiteCount = model.getCount(Player.WHITE);
@@ -339,7 +385,6 @@ class CheckersController extends MouseAdapter {
                 if (whiteCount == 0) winner = Player.BLACK;
                 else if (blackCount == 0) winner = Player.WHITE;
                 
-                // Also check stalemate
                 if (winner == null && model.getValidMoves(model.getCurrentPlayer()).isEmpty()) {
                     winner = model.getCurrentPlayer().opponent();
                 }
@@ -347,17 +392,10 @@ class CheckersController extends MouseAdapter {
                 if (winner != null) {
                     gameEnded = true;
                     String colorName = (winner == Player.WHITE) ? "White" : "Black";
-                    String msg = "Success! Player " + colorName + " wins!";
+                    String msg = "Success! " + colorName + " Player " + " wins!";
                     
-                    System.out.println("Game Over: " + msg);
                     frame.setTitle("GAME OVER - " + msg);
                     view.setGameOverMessage(msg);
-                    SwingUtilities.invokeLater(() -> {
-                        view.repaint();
-                        view.paintImmediately(0, 0, view.getWidth(), view.getHeight());
-                    });
-                    
-                    // Force Exit Timer after 5 seconds
                     new Timer(5000, evt -> System.exit(0)).start();
                 }
             }
@@ -368,22 +406,25 @@ class CheckersController extends MouseAdapter {
 
 // --- MAIN ---
 
-public class CheckersGame {
+public class CheckersFinal { // שם מחלקה חדש
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            JFrame frame = new JFrame("Java Checkers"); // Title will be overwritten immediately
+            JFrame frame = new JFrame("INITIALIZING...");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             
             CheckersModel model = new CheckersModel();
             CheckersView view = new CheckersView(model);
             
-            // Pass 'frame' to controller so it can update the title
-            new CheckersController(model, view, frame);
+            // שימוש ב-Controller המלא
+            new FullCheckersController(model, view, frame);
 
             frame.add(view);
             frame.pack();
             frame.setLocationRelativeTo(null);
             frame.setVisible(true);
+
+            // בדיקת שפיות - הודעה קופצת
+            JOptionPane.showMessageDialog(frame, "Game Started! Check the window title.");
         });
     }
 }
