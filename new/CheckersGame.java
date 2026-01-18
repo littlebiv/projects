@@ -1,9 +1,9 @@
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.*;
 
 // --- ENUMS & DATA STRUCTURES ---
 
@@ -30,6 +30,8 @@ class Point {
     int row, col;
     public Point(int row, int col) { this.row = row; this.col = col; }
     public boolean equals(int r, int c) { return this.row == r && this.col == c; }
+    @Override
+    public String toString() { return "(" + row + "," + col + ")"; }
 }
 
 class Move {
@@ -60,7 +62,6 @@ class CheckersModel {
         board = new Piece[SIZE][SIZE];
         currentPlayer = Player.WHITE;
         
-        // Setup pieces
         for (int row = 0; row < SIZE; row++) {
             for (int col = 0; col < SIZE; col++) {
                 if ((row + col) % 2 != 0) {
@@ -82,16 +83,13 @@ class CheckersModel {
         Piece piece = board[move.start.row][move.start.col];
         if (piece == null) return false;
 
-        // Execute move
         board[move.end.row][move.end.col] = piece;
         board[move.start.row][move.start.col] = null;
 
-        // Handle capture
         if (move.isCapture) {
             board[move.capturedPiece.row][move.capturedPiece.col] = null;
         }
 
-        // King Promotion
         if (!piece.isKing() && ((piece.getPlayer() == Player.WHITE && move.end.row == 0) ||
             (piece.getPlayer() == Player.BLACK && move.end.row == SIZE - 1))) {
             piece.makeKing();
@@ -101,7 +99,6 @@ class CheckersModel {
         return true;
     }
 
-    // New logic: Flying King + Regular moves
     public List<Move> getValidMoves(Player player) {
         List<Move> moves = new ArrayList<>();
         List<Move> captures = new ArrayList<>();
@@ -127,28 +124,21 @@ class CheckersModel {
             int dCol = dir[1];
 
             if (p.isKing()) {
-                // Flying King Logic
                 boolean foundEnemy = false;
                 Point enemyPos = null;
 
                 for (int dist = 1; dist < SIZE; dist++) {
                     int targetR = r + (dRow * dist);
                     int targetC = c + (dCol * dist);
-
                     if (!isValidBounds(targetR, targetC)) break;
-
                     Piece targetP = board[targetR][targetC];
 
                     if (targetP == null) {
-                        if (!foundEnemy) {
-                            moves.add(new Move(new Point(r, c), new Point(targetR, targetC), false, null));
-                        } else {
-                            captures.add(new Move(new Point(r, c), new Point(targetR, targetC), true, enemyPos));
-                        }
+                        if (!foundEnemy) moves.add(new Move(new Point(r, c), new Point(targetR, targetC), false, null));
+                        else captures.add(new Move(new Point(r, c), new Point(targetR, targetC), true, enemyPos));
                     } else {
-                        if (targetP.getPlayer() == p.getPlayer()) {
-                            break;
-                        } else {
+                        if (targetP.getPlayer() == p.getPlayer()) break;
+                        else {
                             if (foundEnemy) break;
                             foundEnemy = true;
                             enemyPos = new Point(targetR, targetC);
@@ -156,10 +146,7 @@ class CheckersModel {
                     }
                 }
             } else {
-                // Regular Man Logic
                 int forwardDir = (p.getPlayer() == Player.WHITE) ? -1 : 1;
-                
-                // Simple Move
                 if (dRow == forwardDir) {
                     int targetR = r + dRow;
                     int targetC = c + dCol;
@@ -167,13 +154,10 @@ class CheckersModel {
                         moves.add(new Move(new Point(r, c), new Point(targetR, targetC), false, null));
                     }
                 }
-
-                // Capture
                 int jumpR = r + (dRow * 2);
                 int jumpC = c + (dCol * 2);
                 int midR = r + dRow;
                 int midC = c + dCol;
-
                 if (isValidBounds(jumpR, jumpC) && board[jumpR][jumpC] == null) {
                     Piece midP = board[midR][midC];
                     if (midP != null && midP.getPlayer() != p.getPlayer()) {
@@ -188,24 +172,16 @@ class CheckersModel {
         return r >= 0 && r < SIZE && c >= 0 && c < SIZE;
     }
 
-    // --- Win Detection ---
-    public Player getWinner() {
-        boolean whiteExists = false;
-        boolean blackExists = false;
-
-        for (int r = 0; r < SIZE; r++) {
-            for (int c = 0; c < SIZE; c++) {
-                Piece p = board[r][c];
-                if (p != null) {
-                    if (p.getPlayer() == Player.WHITE) whiteExists = true;
-                    else blackExists = true;
-                }
+    // פונקציית עזר להחזרת כמות הכלים
+    public int getCount(Player p) {
+        int count = 0;
+        for(int r=0; r<SIZE; r++) {
+            for(int c=0; c<SIZE; c++) {
+                Piece piece = board[r][c];
+                if(piece != null && piece.getPlayer() == p) count++;
             }
         }
-
-        if (!whiteExists) return Player.BLACK;
-        if (!blackExists) return Player.WHITE;
-        return null;
+        return count;
     }
 }
 
@@ -242,7 +218,6 @@ class CheckersView extends JPanel {
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        // Draw Board
         for (int row = 0; row < CheckersModel.SIZE; row++) {
             for (int col = 0; col < CheckersModel.SIZE; col++) {
                 if ((row + col) % 2 == 0) g2.setColor(new Color(235, 206, 168));
@@ -259,10 +234,8 @@ class CheckersView extends JPanel {
                     int padding = 12;
                     if (piece.getPlayer() == Player.WHITE) g2.setColor(Color.WHITE);
                     else g2.setColor(Color.BLACK);
-                    
                     g2.fillOval(col * TILE_SIZE + padding, row * TILE_SIZE + padding, 
                                 TILE_SIZE - 2*padding, TILE_SIZE - 2*padding);
-                    
                     g2.setColor(Color.GRAY);
                     g2.drawOval(col * TILE_SIZE + padding, row * TILE_SIZE + padding, 
                                 TILE_SIZE - 2*padding, TILE_SIZE - 2*padding);
@@ -276,7 +249,6 @@ class CheckersView extends JPanel {
             }
         }
 
-        // Highlight Valid Moves
         g2.setColor(new Color(0, 255, 0, 150));
         for (Move m : validMovesForSelected) {
             int cx = m.end.col * TILE_SIZE + TILE_SIZE / 2;
@@ -284,21 +256,14 @@ class CheckersView extends JPanel {
             g2.fillOval(cx - 10, cy - 10, 20, 20);
         }
 
-        // Draw Game Over Message
         if (gameOverMessage != null) {
             g2.setColor(new Color(0, 0, 0, 200));
             g2.fillRect(0, 0, getWidth(), getHeight());
-
             g2.setColor(new Color(255, 215, 0));
             g2.setFont(new Font("Arial", Font.BOLD, 40));
-
             FontMetrics fm = g2.getFontMetrics();
-            int textWidth = fm.stringWidth(gameOverMessage);
-            int textHeight = fm.getAscent();
-            
-            int x = (getWidth() - textWidth) / 2;
-            int y = (getHeight() + textHeight) / 2;
-
+            int x = (getWidth() - fm.stringWidth(gameOverMessage)) / 2;
+            int y = (getHeight() + fm.getAscent()) / 2;
             g2.drawString(gameOverMessage, x, y);
         }
     }
@@ -309,13 +274,22 @@ class CheckersView extends JPanel {
 class CheckersController extends MouseAdapter {
     private CheckersModel model;
     private CheckersView view;
+    private JFrame frame; // Reference to window to update title
     private Point selectedSource;
     private boolean gameEnded = false;
 
-    public CheckersController(CheckersModel model, CheckersView view) {
+    public CheckersController(CheckersModel model, CheckersView view, JFrame frame) {
         this.model = model;
         this.view = view;
+        this.frame = frame;
         view.addMouseListener(this);
+        updateTitle(); // Initial title
+    }
+
+    private void updateTitle() {
+        int w = model.getCount(Player.WHITE);
+        int b = model.getCount(Player.BLACK);
+        frame.setTitle("Checkers | White Left: " + w + " | Black Left: " + b + " | Turn: " + model.getCurrentPlayer());
     }
 
     @Override
@@ -354,14 +328,36 @@ class CheckersController extends MouseAdapter {
                 selectedSource = null;
                 view.setSelectedSquare(null, new ArrayList<>());
                 
-                // Win Check
-                Player winner = model.getWinner();
+                // Update Window Title (Debug without Terminal)
+                updateTitle();
+
+                // Check Win
+                int whiteCount = model.getCount(Player.WHITE);
+                int blackCount = model.getCount(Player.BLACK);
+                
+                Player winner = null;
+                if (whiteCount == 0) winner = Player.BLACK;
+                else if (blackCount == 0) winner = Player.WHITE;
+                
+                // Also check stalemate
+                if (winner == null && model.getValidMoves(model.getCurrentPlayer()).isEmpty()) {
+                    winner = model.getCurrentPlayer().opponent();
+                }
+
                 if (winner != null) {
                     gameEnded = true;
                     String colorName = (winner == Player.WHITE) ? "White" : "Black";
-                    view.setGameOverMessage("Success! Player " + colorName + " wins!");
+                    String msg = "Success! Player " + colorName + " wins!";
                     
-                    // Exit after 5 seconds
+                    System.out.println("Game Over: " + msg);
+                    frame.setTitle("GAME OVER - " + msg);
+                    view.setGameOverMessage(msg);
+                    SwingUtilities.invokeLater(() -> {
+                        view.repaint();
+                        view.paintImmediately(0, 0, view.getWidth(), view.getHeight());
+                    });
+                    
+                    // Force Exit Timer after 5 seconds
                     new Timer(5000, evt -> System.exit(0)).start();
                 }
             }
@@ -375,12 +371,14 @@ class CheckersController extends MouseAdapter {
 public class CheckersGame {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            JFrame frame = new JFrame("Java Checkers - Flying King");
+            JFrame frame = new JFrame("Java Checkers"); // Title will be overwritten immediately
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             
             CheckersModel model = new CheckersModel();
             CheckersView view = new CheckersView(model);
-            new CheckersController(model, view);
+            
+            // Pass 'frame' to controller so it can update the title
+            new CheckersController(model, view, frame);
 
             frame.add(view);
             frame.pack();
@@ -388,6 +386,4 @@ public class CheckersGame {
             frame.setVisible(true);
         });
     }
-} {
-    
 }
