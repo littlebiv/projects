@@ -1,0 +1,33 @@
+# Compiled output
+bin/
+build/
+target/
+out/
+*.class
+
+# Package files
+*.jar
+*.war
+*.ear
+
+# Log files
+*.log
+
+# IDE specific files
+.vscode/
+.idea/
+*.iml
+.project
+.classpath
+.settings/
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~
+.DS_Store

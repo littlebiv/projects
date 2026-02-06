@@ -1,3 +1,16 @@
+/**
+ * DEPRECATED: This file contains the original monolithic implementation.
+ * 
+ * The code has been refactored into separate files using Observer Pattern and MVC architecture.
+ * Please use the new modular implementation:
+ * 
+ * Main entry point: CheckersGame.java
+ * 
+ * See ARCHITECTURE.md for details on the new design.
+ * 
+ * This file is kept for reference only.
+ */
+
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
