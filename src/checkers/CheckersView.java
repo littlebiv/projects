@@ -69,6 +69,7 @@ public class CheckersView extends JPanel implements IGameView, IGameObserver {
     }
     
     // IGameObserver implementation
+    // These methods will be called by the model when the game state changes
     
     @Override
     public void onBoardChanged() {
