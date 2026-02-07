@@ -193,7 +193,7 @@ public class CheckersView extends JPanel implements IGameView, IGameObserver {
         
         // Draw game over text
         g2.setColor(GAME_OVER_TEXT_COLOR);
-        g2.setFont(new Font("Arial", Font.BOLD, 40));
+        g2.setFont(new Font("Arial", Font.BOLD, 25));
         
         FontMetrics fm = g2.getFontMetrics();
         int textWidth = fm.stringWidth(gameOverMessage);
