@@ -18,7 +18,7 @@ public class CheckersGame {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         
         // Create MVC components
-        IBoardModel model = new CheckersModel();
+        IBoardModel model = CheckersModel.getInstance();
         IGameView view = new CheckersView(model);
         IGameController controller = new CheckersController(model, view, frame);
         

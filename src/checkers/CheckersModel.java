@@ -9,6 +9,7 @@ import java.util.List;
  */
 public class CheckersModel implements IBoardModel {
     private static final int BOARD_SIZE = 8;
+    private static CheckersModel instance;
     
     private IGamePiece[][] board;
     private Player currentPlayer;
@@ -16,9 +17,16 @@ public class CheckersModel implements IBoardModel {
     private boolean gameOver;
     private Player winner;
     
-    public CheckersModel() {
+    private CheckersModel() {
         this.observers = new ArrayList<>();
         resetGame();
+    }
+
+    public static CheckersModel getInstance() {
+        if (instance == null) {
+            instance = new CheckersModel();
+        }
+        return instance;
     }
     
     @Override
