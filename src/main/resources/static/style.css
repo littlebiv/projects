@@ -1,0 +1,182 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: radial-gradient(circle at top, #137548 0%, #0b5d36 60%, #08492b 100%);
+  color: #fff;
+  zoom: 75%;
+}
+
+@supports not (zoom: 1) {
+  body {
+    transform: scale(0.75);
+    transform-origin: top left;
+    width: 133.3333%;
+  }
+}
+
+.table {
+  max-width: 1100px;
+  margin: 20px auto;
+  padding: 20px;
+}
+
+header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.turn-banner {
+  margin-top: 10px;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-weight: 700;
+}
+
+.turn-banner.active {
+  background: rgba(46, 204, 113, 0.25);
+  border: 1px solid rgba(46, 204, 113, 0.65);
+}
+
+.turn-banner.waiting {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.panel {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 12px;
+  margin-top: 12px;
+}
+
+.game-grid-panel {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(160px, 1fr));
+  gap: 8px 16px;
+}
+
+.game-grid-panel h2 {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+#scoreBoard {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 4px;
+}
+
+#wagerBoard {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 4px;
+}
+
+#trickBoard {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 4px;
+}
+
+.wager-item {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 8px;
+  padding: 6px 10px;
+}
+
+#playersList {
+  display: grid;
+  gap: 6px;
+}
+
+.player-item {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 8px;
+  padding: 6px 10px;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.auction-controls {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.hint {
+  opacity: 0.9;
+  margin-bottom: 0;
+}
+
+input, select, button {
+  padding: 8px;
+  border-radius: 6px;
+  border: none;
+}
+
+button {
+  cursor: pointer;
+}
+
+.cards {
+  min-height: 68px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.card {
+  border-radius: 8px;
+  padding: 2px;
+  width: 96px;
+  text-align: center;
+  border: 2px solid transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.card-face {
+  width: 92px;
+  height: 128px;
+  border-radius: 10px;
+  user-select: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.22);
+}
+
+.card-owner {
+  font-size: 12px;
+  line-height: 1;
+  color: #f3f7ff;
+  opacity: 0.95;
+}
+
+.card.playable {
+  cursor: pointer;
+  border-color: #0b5d36;
+  transform: translateY(0);
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.card.playable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.22);
+}
+
+.card.disabled {
+  opacity: 0.55;
+}
+
+.hidden {
+  display: none !important;
+}
