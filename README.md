@@ -43,6 +43,23 @@ Spring Boot + WebSocket backend with an HTML/CSS/JavaScript frontend for a playa
    - `http://localhost:8080`
 4. Run 4 players as described in **How to Play (Current MVP)**.
 
+## Azure Deployment (App Service)
+This project is configured with GitHub Actions workflow:
+- `.github/workflows/deploy-azure-webapp.yml`
+
+What you need once:
+1. Create an Azure Web App (Linux, Java 21 runtime).
+2. In Azure Portal, download the **Publish Profile** for that Web App.
+3. In your GitHub repo settings, add secrets:
+   - `AZURE_WEBAPP_NAME` = your web app name
+   - `AZURE_WEBAPP_PUBLISH_PROFILE` = full publish profile XML content
+4. Push to `main` (or run workflow manually from Actions tab).
+
+Notes:
+- App Service sets the `PORT` env var automatically; Spring Boot will bind correctly in Azure.
+- The workflow builds and deploys `target/whist-0.0.1-SNAPSHOT.jar`.
+- If you change `artifactId` or version in `pom.xml`, update the workflow package path.
+
 ## Current Implementation Scope
 - Core game flow: auction -> trick play -> trick winner -> round progression -> game completion
 - Rule checks: bid ordering, turn enforcement, follow-suit enforcement, illegal action rejection
