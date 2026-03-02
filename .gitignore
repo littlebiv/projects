@@ -1,0 +1,4 @@
+target/
+leaderboard.json
+*.log
+.vscode/*.log

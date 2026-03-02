@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Whist Online</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+</head>
+<body>
+  <main class="table">
+    <header>
+      <h1>Online Multiplayer Whist</h1>
+      <p id="status">Disconnected</p>
+    </header>
+
+    <section id="turnBanner" class="turn-banner waiting">
+      Waiting for game state...
+    </section>
+
+    <section id="controlsPanel" class="controls">
+      <input id="playerName" placeholder="Your name" />
+      <select id="roomSize">
+        <option value="4" selected>4 Players</option>
+        <option value="3">3 Players</option>
+      </select>
+      <input id="roomId" placeholder="Room ID" />
+      <button id="createRoomBtn">Create Room</button>
+      <button id="joinRoomBtn">Join Room</button>
+    </section>
+
+    <section id="playersPanel" class="panel">
+      <h2>Players</h2>
+      <div id="playersList">No players yet.</div>
+    </section>
+
+    <section id="auctionModal" class="panel">
+      <h2>Auction</h2>
+      <p>Current highest bid: <span id="highestBid">-</span></p>
+      <div class="auction-controls">
+        <input id="bidValue" type="number" min="0" max="13" value="1" />
+        <select id="trumpSuit">
+          <option>CLUBS</option>
+          <option>HEARTS</option>
+          <option>DIAMONDS</option>
+          <option>SPADES</option>
+        </select>
+        <button id="placeBidBtn">Bid</button>
+        <button id="passBtn">Pass</button>
+      </div>
+      <p id="actionHint" class="hint">Join a room to start.</p>
+    </section>
+
+    <section id="wagerPanel" class="panel">
+      <h2>Wager Tricks</h2>
+      <p>After trump is chosen, each player must declare predicted tricks.</p>
+      <p><strong>Rule:</strong> Total wagers cannot equal 13.</p>
+      <div class="auction-controls">
+        <input id="wagerValue" type="number" min="0" max="13" value="0" />
+        <button id="submitWagerBtn">Submit Wager</button>
+      </div>
+    </section>
+
+    <section id="tablePanel" class="panel">
+      <h2>Table</h2>
+      <div id="tableCards" class="cards"></div>
+    </section>
+
+    <section id="handPanel" class="panel">
+      <h2>Your Hand</h2>
+      <div id="handView" class="cards"></div>
+    </section>
+
+    <section id="gameInfoPanel" class="panel game-grid-panel">
+      <h2>Game Info</h2>
+      <p>Phase: <span id="phaseText">-</span></p>
+      <p>Round: <span id="roundText">-</span></p>
+      <p>Trump: <span id="trumpText">-</span></p>
+      <p>Declared Total: <span id="declaredTotal">0</span></p>
+      <p>Tricks Won (Round):</p>
+      <div id="trickBoard"></div>
+      <div id="wagerBoard"></div>
+      <div id="scoreBoard"></div>
+    </section>
+  </main>
+
+  <script src="network-client.js"></script>
+  <script src="ui-manager.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

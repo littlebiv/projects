@@ -1,0 +1,19 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+        "type": "java",
+        "name": "WhistApplication",
+        "request": "launch",
+        "mainClass": "com.whist.game.WhistApplication",
+        "projectName": "whist"
+    },
+    {
+        "type": "java",
+        "name": "Attach Whist Debug (5005)",
+        "request": "attach",
+        "hostName": "localhost",
+        "port": 5005
+    }
+]
+}
