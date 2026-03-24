@@ -1,0 +1,27 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Run Checkers App",
+      "type": "shell",
+      "command": "..\\mvnw.cmd",
+      "args": [
+        "-f",
+        ".\\pom.xml",
+        "exec:java"
+      ],
+      "group": "build"
+    },
+    {
+      "label": "Build Checkers App",
+      "type": "shell",
+      "command": "..\\mvnw.cmd",
+      "args": [
+        "-f",
+        ".\\pom.xml",
+        "compile"
+      ],
+      "group": "build"
+    }
+  ]
+}

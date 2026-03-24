@@ -1,0 +1,15 @@
+{
+  "folders": [
+    {
+      "name": "Whist",
+      "path": "."
+    },
+    {
+      "name": "Checkers",
+      "path": "checkers"
+    }
+  ],
+  "settings": {
+    "java.debug.settings.onBuildFailureProceed": true
+  }
+}
